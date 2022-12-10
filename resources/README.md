@@ -1,0 +1,1 @@
+Inside this directory (/course files) will be stored files given by the course.
