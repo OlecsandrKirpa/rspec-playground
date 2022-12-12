@@ -45,3 +45,4 @@ example_id                                 | status | run_time        |
 ./spec/shared_examples_spec.rb[3:2]        | passed | 0.00047 seconds |
 ./spec/shared_examples_spec.rb[4:1]        | passed | 0.00015 seconds |
 ./spec/shared_examples_spec.rb[4:2]        | passed | 0.00014 seconds |
+./spec/testit.rb[1:1]                      | passed | 0.00302 seconds |
