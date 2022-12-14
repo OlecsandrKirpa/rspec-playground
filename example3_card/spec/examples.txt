@@ -26,6 +26,7 @@ example_id                                 | status | run_time        |
 ./spec/implicit_subject2_spec.rb[1:5:1]    | passed | 0.00008 seconds |
 ./spec/implicit_subject_spec.rb[1:1]       | passed | 0.00008 seconds |
 ./spec/implicit_subject_spec.rb[1:2]       | passed | 0.00044 seconds |
+./spec/movie_spec.rb[1:1:1]                | passed | 0.00644 seconds |
 ./spec/nested_hooks_spec.rb[1:1]           | passed | 0.00043 seconds |
 ./spec/nested_hooks_spec.rb[1:2:1]         | passed | 0.00008 seconds |
 ./spec/nested_hooks_spec.rb[1:2:2]         | passed | 0.0001 seconds  |
@@ -45,4 +46,4 @@ example_id                                 | status | run_time        |
 ./spec/shared_examples_spec.rb[3:2]        | passed | 0.00047 seconds |
 ./spec/shared_examples_spec.rb[4:1]        | passed | 0.00015 seconds |
 ./spec/shared_examples_spec.rb[4:2]        | passed | 0.00014 seconds |
-./spec/testit.rb[1:1]                      | passed | 0.00302 seconds |
+./spec/testit.rb[1:1:1]                    | passed | 0.00751 seconds |

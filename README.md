@@ -723,3 +723,282 @@ RSpec.describe 'Compound expectations' do
   end
 end
 ```
+
+## Mocking
+To mock == To Emulate
+### Doubles and Allow method
+```rb
+# frozen_string_literal: true
+
+RSpec.describe 'a random double' do
+  # Syntax 1:
+  # double('name', method: return_value)
+  it 'only allows defined methods to be invoked' do
+    stuntman = double('Mr. danger', fall_off_ladder: 'Ouch', light_on_fire: true)
+
+    expect(stuntman.fall_off_ladder).to eq('Ouch')
+    expect(stuntman.light_on_fire).to eq(true)
+  end
+
+  # Syntax 2:
+  # a = double('name')
+  # allow(a).to receive(:method).and_return(return_value)
+  it '"allow" with "receive" example' do
+    stuntman = double('Mr. danger')
+
+    # We want to allow the stuntman to receive a specific method
+    allow(stuntman).to receive(:method_with_nil_return)
+    allow(stuntman).to receive(:fall_off_ladder).and_return('Ouch')
+
+    expect(stuntman.method_with_nil_return).to be_nil
+  end
+
+  # Syntax 3:
+  # a = double('name')
+  # allow(a).to receive_messages(method: return_value, method: return_value)
+  it '"allow" with "receive_messages" example' do
+    stuntman = double('Mr. danger')
+    allow(stuntman).to receive_messages(fall_off_ladder: 'Ouch', light_on_fire: true)
+
+    expect(stuntman.fall_off_ladder).to eq('Ouch')
+    expect(stuntman.light_on_fire).to eq(true)
+  end
+end
+```
+```rb
+# frozen_string_literal: true
+
+RSpec.describe 'allow_method review' do
+  it 'can customize methods for doubles' do
+    calculator = double
+    allow(calculator).to receive(:add).and_return(15)
+
+    expect(calculator.add).not_to be_nil
+    expect(calculator.add).to be 15
+  end
+
+  describe 'can stub one or methods on a real object' do
+    let(:my_arr) { [1, 2, 3] }
+    it { expect(my_arr.sum).to eq 6 }
+
+    it 'adding some methods to an Array with allow' do
+      allow(my_arr).to receive(:sum).and_return(2)
+
+      expect(my_arr.sum).to eq 2
+      my_arr.push(5)
+      expect(my_arr).to include(1, 2, 3, 5)
+      expect(my_arr.sum).to eq(2)
+    end
+
+    it 'can return multiple return values in sequence' do
+      # (sush as #pop on Array)
+      # our Array is [:b, :c]
+      mock_array = double
+      allow(mock_array).to receive(:pop).and_return(:c, :d, nil)
+      expect(mock_array.pop).to eq(:c)
+      expect(mock_array.pop).to eq(:d)
+      expect(mock_array.pop).to be_nil
+      expect(mock_array.pop).to be_nil
+      expect(mock_array.pop).to be_nil
+      expect(mock_array.pop).to be_nil
+    end
+  end
+end
+```
+```rb
+# frozen_string_literal: true
+
+RSpec.describe 'Mocking array #first method' do
+  # but considering the param passed to it
+  it 'can return different values based on the argument' do
+    three_element_array = double # [1, 2, 3]
+
+    allow(three_element_array).to receive(:first).with(no_args).and_return(1)
+    allow(three_element_array).to receive(:first).with(1).and_return([1])
+    allow(three_element_array).to receive(:first).with(2).and_return([1, 2])
+    allow(three_element_array).to receive(:first).with(3).and_return([1, 2, 3])
+    allow(three_element_array).to receive(:first).with(be >= 3).and_return([1, 2, 3])
+
+    expect(three_element_array.first).to eq 1
+    expect(three_element_array.first(1)).to eq [1]
+    expect(three_element_array.first(2)).to eq [1, 2]
+    expect(three_element_array.first(3)).to eq [1, 2, 3]
+    expect(three_element_array.first(300)).to eq [1, 2, 3]
+  end
+end
+```
+
+### Exercise 10
+```rb
+# frozen_string_literal: true
+
+RSpec.describe 'Exercize_10 - doubles' do
+  # Create a double with the name "Database Connection".
+  # The double should have a method called connect that returns the value true.
+  # The double also have a method called disconnect that returns the value "Goodbye".
+  # The double's methods should be assigned in the initial invocation of the double method.
+  # Write two expectations, one for connect and one for disconnect, that confirms the return value of each.
+  # Assign the double to the variable db.
+  it 'part 1' do
+    db = double('Database Connection', connect: true, disconnect: 'Goodbye')
+    expect(db.connect).to eq(true)
+    expect(db.disconnect).to eq('Goodbye')
+  end
+
+  # Create a double with the name "File System". Assign the double to the variable fs.
+  # Using the allow method, give the double a read method that returns the value "Romeo and Juliet".
+  # Using the allow method, give the double a write method that returns the value false.
+  it 'part 2' do
+    fs = double('File System')
+    allow(fs).to receive(:read).and_return('Romeo and Juliet')
+    allow(fs).to receive_messages(write: false)
+
+    expect(fs.read).to eq('Romeo and Juliet')
+    expect(fs.write).to eq(false)
+  end
+end
+```
+
+### Movie spec
+See `movie_spec.rb`
+
+### Instance doubles
+```rb
+# frozen_string_literal: true
+
+class Person
+  def sayhi
+    sleep 3
+    'Hello'
+  end
+end
+
+RSpec.describe Person do
+  describe 'regular double' do
+    it 'can implement any method' do
+      # Method #bratan does not exist on class Person
+      person = double(sayhi: 'Hello', bratan: 20)
+      expect(person.sayhi).to eq('Hello')
+    end
+  end
+
+  describe 'Instance double - super cool double' do
+    it 'can implement only Person methods' do
+      person = instance_double(Person, sayhi: 'Hello')
+      # expect(person.sayhi).to eq('Hello')
+
+      # Going to throw an error cuz #sayhi does not have params
+      # allow(person).to receive(:sayhi).with(3, 10).and_return('Hello')
+    end
+  end
+end
+```
+
+### Class double
+
+```rb
+# frozen_string_literal: true
+
+def Deck
+  class << self
+    def build
+      # returns array of cards
+    end
+  end
+end
+
+class CardGame
+  attr_accessor :cards
+
+  def start
+    @cards = Deck.build
+  end
+end
+
+RSpec.describe CardGame do
+  it 'can only implement call methods that are defined on a class' do
+    # "as_stubbed_const" replaces any "Deck" constant reference with this double. Useful when Deck is not defined.
+    deck_klass = class_double('Deck', build: %w[Ace Queen]).as_stubbed_const
+
+    expect(deck_klass).to receive(:build).once
+    subject.start
+    expect(subject.cards).to eq(%w[Ace Queen])
+  end
+end
+```
+
+### Spies
+Alternative to double
+```rb
+# frozen_string_literal: true
+
+RSpec.describe 'Spies' do
+  let(:animal) { spy('Lion', roar: 'Roar!!!') }
+
+  it 'used to confirm that a message has been received' do
+    # in other words, that a method has been called.
+    animal.roar
+    expect(animal).to have_received(:roar).once
+    animal.roar
+
+    expect(animal).to have_received(:roar).twice
+
+    expect(animal).not_to have_received(:eat_human)
+  end
+
+  it 'resets between examples' do
+    expect(animal).not_to have_received(:roar)
+  end
+
+  it 'retais the same funcionalities of a double' do
+    animal.roar
+    animal.roar
+    animal.roar('Miao')
+    expect(animal).to have_received(:roar).exactly(3).times
+    expect(animal).to have_received(:roar).at_least(2).times
+    expect(animal).to have_received(:roar).at_least(2).times.with(no_args)
+    expect(animal).to have_received(:roar).once.with('Miao')
+  end
+end
+```
+```rb
+# frozen_string_literal: true
+
+class Garage
+  attr_accessor :storage
+
+  def initialize
+    @storage = []
+  end
+
+  def add_to_collection(model)
+    @storage << Car.new(model)
+  end
+end
+
+class Car
+  attr_accessor :model
+
+  def initialize(model)
+    @model = model
+  end
+end
+
+RSpec.describe 'spy a method on a real class' do
+  # Need to fake Car to be indipendent from car.
+  describe Garage do
+    let(:car) { instance_double(Car) }
+
+    before do
+      allow(Car).to receive(:new).and_return(car)
+    end
+
+    it 'adds car to its storage' do
+      subject.add_to_collection('Honda Civic')
+      expect(Car).to have_received(:new).with('Honda Civic')
+      expect(subject.storage.length).to eq(1)
+      expect(subject.storage.first).to eq(car)
+    end
+  end
+end
+```
